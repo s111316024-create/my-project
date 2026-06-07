@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人工智慧導論期末報告-YOLO</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --highlight: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: var(--text-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .image-placeholder {
+            background-color: #0f172a;
+            border: 2px dashed var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 25px 0;
+            color: var(--accent-color);
+        }
+
+        .image-placeholder img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 15px;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .image-title {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #334155;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        .inner-list {
+            margin-left: 20px;
+            list-style-type: circle;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* 數學公式專用樣式調整 */
+        .math-box {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>人工智慧導論期末報告-YOLO</h1>
+        <div class="subtitle">演算法介紹</div>
+    </header>
+
+    <section>
+        <h2>這個演算法是什麽？</h2>
+        <p>YOLO是取自於You only look once的首字母，是一種讓電腦能夠快速地識別出一張圖片中的物體和它們的位置的影像辨識模型技術。</p>
+    </section>
+
+    <section>
+        <h2>基本運作流程</h2>
+        <p>YOLO的作用方式是將圖片分成很多小格子，分析每個格子中可能存在的物體、位置、形狀和顏色等特徵，並利用深度學習技術，經過神經網路與之前學習到的知識進行比對，得出圖片中物體的類型和位置。</p>
+        <p>其主要步驟可大致分為三類：</p>
+        <ol>
+            <li><strong>劃分網格：</strong>將一張圖片平均分成SxS的小網格。</li>
+            <li><strong>獨立預測：</strong>每個網格會產生類別機率和候選框資訊。
+                <ul class="inner-list">
+                    <li>類別機率代表電腦預測想找的物體在該格子的機率為多少。</li>
+                    <li>候選框資訊指的是x、y、w、h和confidence。x、y是框的中心坐標；w、h是框的寬度和高度；confidence是框包含物體的信心值，在YOLO這個模型裡是透過以下公式算出來的，數值會介於0-1之間。</li>
+                </ul>
+            </li>
+        </ol>
+
+        <div class="math-box">
+            $$Confidence = P(\text{Object}) \times \text{IoU}_{\text{pred}}^{\text{truth}}$$
+        </div>
+
+        <div class="image-placeholder">
+            <img src="iou_formula.png" alt="IOU = B / (A + B + C)">
+            <div class="image-title">IOU計算示意圖</div>
+        </div>
+
+        <ol start="3">
+            <li><strong>信心度結合NMS產生結果：</strong>當想找一個物體時，電腦會先標示出可能符合物件的候選框，後根據候選框內包含物件的信心程度多寡排除或保留候選框，而如何篩選出好的物件框則是交由NMS去做判斷。NMS是一種非極大值抑制（non-maximum suppression）的演算法，電腦找出可能的候選框時可能一個物件上會有很多框，這時NMS會先將所有框依照信心值大小排序好，再選出信心值最高的那個框做一指標，將指標物件框與其他候選框做交並比（IoU,Intersection over Union)，將大於某閾值的框刪除，閾值通常為0.5，超過代表其框和指標框重疊過高，可能框的是同一個物體，而剩餘保留下來的則是確定是物件的框。</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2>主要解決什麽問題</h2>
+        <p>除了YOLO之外，還有很多一樣是用深度學習物件偵測的影像辨識模型技術。傳統的影像辨識模型會需要使用兩個神經網絡，先找出候選框後再進行分類，較為耗時和容易產生重複和錯誤的偵測，相比起來，YOLO的最大特色在於速度和精確度，同上資訊，YOLO可以將x、y、w、h、confidence these 預測組合起來，得到一個SxSx(Bx5+C)維的輸出向量（S:切成SxS個格子、B:每個格子預測B個候選框、C:C個類別機率），這個向量包含了圖片中所有物件的位置和類別資訊，並且只需要經過一次神經網路的運算就可以得到結果，所以YOLO每秒可以處理幾十張、甚至上百張的圖片且具有很高的準確性，這也是它可以很好的運用在自動駕駛、監控系統等需要快速反應的應用上。</p>
+    </section>
+
+    <section>
+        <h2>AI輔助學習記錄</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 35%;">對話截圖</th>
+                    <th style="width: 25%;">重點摘要</th>
+                    <th style="width: 40%;">理解的地方</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="image-placeholder" style="margin: 5px 0; padding: 10px;">
+                            <img src="chat_screenshot_1.png">
+                        </div>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>IoU計算出的數值代表的意思</li>
+                            <li>NMS的運作流程</li>
+                            <li>IoU如何幫助了NMS作用</li>
+                        </ul>
+                    </td>
+                    <td>在找資料時，單查YOLO的資料都只有提到用NMS去消除多餘的候選框，具體怎麽消除的不清楚。後來直接搜尋NMS演算法的介紹才有提到NMS在運作時有IoU做幫忙，但因為一開始看到IoU是在如何得到Confidence的那個公式中，想說NMS中的IoU和Confidence之間有什麽關係，問了Gemini才理解整個流程，是兩個都有用到IoU這個計算方式。</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="image-placeholder" style="margin: 5px 0; padding: 10px;">
+                            <img src="chat_screenshot_2.png" >
+                        </div>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>Confidence的公式及公式中各符號所代表意義</li>
+                            <li>不同情況下代入公式中的樣子</li>
+                        </ul>
+                    </td>
+                    <td>同上，查資料哦時幾乎都只是淺淺帶過信心值，知道他在YOLO裡占了很重要的一部分，有在一篇文章中看過這個公式，知道和IoU有關係，但似懂非懂，有點混肴，問Gemini後有很好的理解了Confidence的運用狀況。</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="image-placeholder" style="margin: 5px 0; padding: 10px;">
+                            <img src="chat_screenshot_3.png" >
+                        </div>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>YOLO處理照片的核心三步驟</li>
+                            <li>卷積神經網路的簡易說明</li>
+                            <li>YOLO的優點</li>
+                        </ul>
+                    </td>
+                    <td>網路上關於YOLO使用的卷積神經網路的講解有些過於艱澀難懂，跟老師上課將結果的不太一樣，專有名詞很多。經過Gemini非常易懂像是在教幼兒園小朋友的講解後，我大概理解了這個神經網路主要的運作流程，至於相對邏輯數學的部分我可能暫且沒辦法整理的很好，所以上方YOLO的運作流程整體是用文字去貫穿的。</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="image-placeholder" style="margin: 5px 0; padding: 10px;">
+                            <img src="chat_screenshot_4.png">
+                        </div>
+                    </td>
+                    <td>
+                        <ul>
+                            <li>YOLO的Tensor代表的意義</li>
+                        </ul>
+                    </td>
+                    <td>S × S ×( B ×5+ C ) 這個公式一直看到，知道他會得到Tensor但不知道Tensor在YOLO起到了什麽作用，去查了神經網路的作用發現Gemini幾乎是把數學直接翻譯成了中文並省略了運算過程，讓我這個小白簡單的理解了一個在神經網路中占有複雜且重要地位的Tensor直接或間接影響到的結果。</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>查證與修正</h2>
+        <h3>查證：NMS的運作流程和IoU的關係</h3>
+        <p><strong>方法：</strong></p>
+        <p>先試試Gemini自身的查證回覆內容→</p>
+        
+        <div class="image-placeholder">
+            <div>【 請將圖片檔名改為：<strong>verification_gemini.png</strong> 填入此處 】</div>
+            <img src="verification_gemini.png" alt="Gemini自身查證回覆截圖">
+        </div>
+        
+        <p>沒什麼用。</p>
+        <p>手動查詢關鍵字→NMS 介紹、YOLO中的NMS運作方式</p>
+        <p><a href="https://ithelp.ithome.com.tw/m/articles/10350080" target="_blank">https://ithelp.ithome.com.tw/m/articles/10350080</a></p>
+        <p><a href="https://ithelp.ithome.com.tw/m/articles/10326513" target="_blank">https://ithelp.ithome.com.tw/m/articles/10326513</a></p>
+        
+        <p><strong>修正：</strong></p>
+        <p>Gemini給的答案和實際上網查的資料並無太多的真實性相差。</p>
+    </section>
+
+    <section>
+        <h2>視覺化說明</h2>
+        
+        <div class="image-placeholder">
+            <img src="visualization_1.png" >
+            <div class="image-title">Input一張照片→將照片分成SxS大小的格子→產生類別機率和候選框資訊→NMS判斷出來的結果</div>
+        </div>
+
+        <div class="image-placeholder">
+            <img src="visualization_2.png" >
+            <div class="image-title">對應的運算過程</div>
+        </div>
+    </section>
+
+    <section>
+        <h2>應用案例</h2>
+        <p>YOLO最著名的應用就是在自動駕駛上的技術。</p>
+        <p>其主要是擔任自動駕駛的“眼睛”角色，可以進行動態障礙物偵測（行人、前車、來車、摩托車......等等）、交通標志與號誌辨識以及偵測道路的環境或遮擋物......等等。</p>
+        <p>常與其它技術整合使用增加精確性。</p>
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/7qbzfYBV2R4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <section>
+        <h2>學習反思</h2>
+        <p>雖然說是用AI學習，但我認為我在給予AI prompt的技巧有些笨拙，常常沒辦法從AI那裡得到我想要的資訊，所以在開始準備報告的時候先是上網找了很多資料，老實說是有點逃避的，因為網路上對於YOLO演算法的資料有些過於零散，像是在介紹演算法的基本運作流程時就要對應好幾個網頁去整理出自己能理解的東西。我無法自己理解或找不到答案時才會尋求AI的幫助。其實我不知道這樣有沒有偏離老師一開始請我們用AI來學習的初衷，因為AI其實還沒有發展到真正完美不會出錯的階段，我也不知道它回答我的答案是不是100%正確，所以對我來說運用AI學習最放心且舒適的方法是先自己查找資料，再進行像老師讓我們做的查證和修正的動作，以確保自己得到的資訊是完全正確的。並且在自己動腦和動手查資料後，有一種踏實的成就感，這種感覺蠻不錯的，我想這可能就是最理想的使用AI的學習方法吧！在一開始其實看到有關YOLO的資料時，我感到很困惑</p>
+    </section>
+
+</div>
+
+</body>
+</html>
